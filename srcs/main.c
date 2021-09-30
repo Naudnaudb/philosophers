@@ -29,22 +29,10 @@ int	init_mutex(t_info *info)
 	return (0);
 }
 
-/*int ft_malloc(void *dst, size_t size)
-{
-	*(void **)dst = malloc(size);
-	if (*(void **)dst == NULL)
-		return (1);
-	memset(*(void **)dst, 0, size);
-	return (0);
-}*/
-
 int	init_philos(t_info *info)
 {
 	int	i;
 
-	/*if (ft_malloc(&info->philos, sizeof(t_philo) * info->nb_philo) ||
-		ft_malloc(&info->forks, sizeof(pthread_mutex_t) * info->nb_philo))
-		return (1);*/
 	i = info->nb_philo - 1;
 	while (i >= 0)
 	{
@@ -52,7 +40,7 @@ int	init_philos(t_info *info)
 		info->philos[i].nb_of_eat = 0;
 		info->philos[i].left = i;
 		info->philos[i].right = (i + 1) % info->nb_philo;
-		info->philos[i].t_last_meal = 0;
+		info->philos[i].last_meal = 0;
 		info->philos[i].info = info;
 		i--;
 	}

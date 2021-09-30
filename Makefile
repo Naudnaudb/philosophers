@@ -3,7 +3,7 @@ NAME	= philo
 CC		= clang
 CFLAGS	= -Wall -Wextra -Werror
 
-SRCSF	=  main.c utils.c error_manager.c prog.c
+SRCSF	=  main.c utils.c prog.c error.c
 
 SRCSD	= srcs/
 INCL	= include/

@@ -23,7 +23,7 @@ void	eat(t_philo *philo)
 	action_print(info, philo->id, "has taken a fork");
 	pthread_mutex_lock(&(info->meal_check));
 	action_print(info, philo->id, "is eating");
-	philo->t_last_meal = time_in_ms();
+	philo->last_meal = time_in_ms();
 	pthread_mutex_unlock(&(info->meal_check));
 	smart_sleep(info->time_to_eat, info);
 	(philo->nb_of_eat)++;
@@ -80,23 +80,23 @@ void	if_is_dead(t_info *info, t_philo *philo)
 
 	while (!(info->all_ate))
 	{
-		i = 0;
-		while (i < info->nb_philo && !(info->dieded))
+		i = -1;
+		while (++i < info->nb_philo && !(info->dieded))
 		{
 			pthread_mutex_lock(&(info->meal_check));
-			if (time_diff(philo[i].t_last_meal, time_in_ms()) > info->time_to_die)
+			if (time_diff(philo[i].last_meal, time_in_ms()) > info->time_to_die)
 			{
 				action_print(info, i, "died");
 				info->dieded = 1;
 			}
 			pthread_mutex_unlock(&(info->meal_check));
 			usleep(100);
-			i++;
 		}
 		if (info->dieded)
 			break ;
 		i = 0;
-		while (info->nb_eat != -1 && i < info->nb_philo && philo[i].nb_of_eat >= info->nb_eat)
+		while (info->nb_eat != -1 && i < info->nb_philo && \
+				philo[i].nb_of_eat >= info->nb_eat)
 			i++;
 		if (i == info->nb_philo)
 			info->all_ate = 1;
@@ -115,7 +115,7 @@ int	prog(t_info *info)
 	{
 		if (pthread_create(&(phi[i].thread_id), NULL, p_thread, &(phi[i])))
 			return (1);
-		phi[i].t_last_meal = time_in_ms();
+		phi[i].last_meal = time_in_ms();
 		i++;
 	}
 	if_is_dead(info, info->philos);

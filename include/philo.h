@@ -26,7 +26,7 @@ typedef struct s_philo
 	int					nb_of_eat;
 	int					left;
 	int					right;
-	long long			t_last_meal;
+	long long			last_meal;
 	pthread_t			thread_id;
 	struct s_info		*info;
 }				t_philo;

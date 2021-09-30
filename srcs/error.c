@@ -12,6 +12,10 @@
 
 #include <philo.h>
 
+/*
+ * Yeah just for that ...
+ */
+
 int	error(char *str)
 {
 	printf("ERROR\n%s\n", str);
