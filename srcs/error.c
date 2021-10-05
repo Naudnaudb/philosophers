@@ -12,12 +12,17 @@
 
 #include <philo.h>
 
-/*
- * Yeah just for that ...
- */
-
 int	error(char *str)
 {
-	printf("ERROR\n%s\n", str);
+	printf("ERROR:\n%s\n", str);
 	exit(1);
+}
+
+int	ft_malloc(void *dst, size_t size)
+{
+	*(void **)dst = malloc(size);
+	if (*(void **)dst == NULL)
+		return (1);
+	memset(*(void **)dst, 0, size);
+	return (0);
 }

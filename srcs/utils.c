@@ -48,12 +48,12 @@ long long	time_diff(long long past, long long pres)
 	return (pres - past);
 }
 
-void	smart_sleep(long long time, t_info *info)
+void	smart_sleep(long long time, t_env *env)
 {
 	long long	i;
 
 	i = time_in_ms();
-	while (!(info->dieded))
+	while (!(env->dieded))
 	{
 		if (time_diff(i, time_in_ms()) >= time)
 			break ;
@@ -61,15 +61,15 @@ void	smart_sleep(long long time, t_info *info)
 	}
 }
 
-void	action_print(t_info *info, int id, char *string)
+void	philo_print(t_env *env, int id, char *str)
 {
-	pthread_mutex_lock(&(info->writing));
-	if (!(info->dieded))
+	pthread_mutex_lock(&(env->writing));
+	if (!(env->dieded))
 	{
-		printf("%lli ", time_in_ms() - info->launch_time);
+		printf("%lli ", time_in_ms() - env->launch_time);
 		printf("%i ", id + 1);
-		printf("%s\n", string);
+		printf("%s\n", str);
 	}
-	pthread_mutex_unlock(&(info->writing));
+	pthread_mutex_unlock(&(env->writing));
 	return ;
 }

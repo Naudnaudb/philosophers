@@ -12,113 +12,115 @@
 
 #include <philo.h>
 
-void	eat(t_philo *philo)
+void	if_is_dead(t_env *env, t_philo *philo)
 {
-	t_info	*info;
+	int	i;
 
-	info = philo->info;
-	pthread_mutex_lock(&(info->forks[philo->left]));
-	action_print(info, philo->id, "has taken a fork");
-	pthread_mutex_lock(&(info->forks[philo->right]));
-	action_print(info, philo->id, "has taken a fork");
-	pthread_mutex_lock(&(info->meal_check));
-	action_print(info, philo->id, "is eating");
-	philo->last_meal = time_in_ms();
-	pthread_mutex_unlock(&(info->meal_check));
-	smart_sleep(info->time_to_eat, info);
-	(philo->nb_of_eat)++;
-	pthread_mutex_unlock(&(info->forks[philo->left]));
-	pthread_mutex_unlock(&(info->forks[philo->right]));
+	while (!(env->all_ate))
+	{
+		i = -1;
+		while (++i < env->nb_philo && !(env->dieded))
+		{
+			pthread_mutex_lock(&(env->meal_check));
+			if (time_diff(philo[i].last_meal, time_in_ms()) > env->time_to_die)
+			{
+				philo_print(env, i, "died");
+				env->dieded = 1;
+			}
+			pthread_mutex_unlock(&(env->meal_check));
+			usleep(100);
+		}
+		if (env->dieded)
+			break ;
+		i = 0;
+		while (env->nb_eat != -1 && i < env->nb_philo && \
+			  philo[i].nb_of_eat >= env->nb_eat)
+			i++;
+		if (i == env->nb_philo)
+			env->all_ate = 1;
+	}
 }
 
-void	*p_thread(void *void_philosopher)
+void	exit_prog(t_env *env, t_philo *philos)
+{
+	int	i;
+
+	i = 0;
+	while (i < env->nb_philo)
+	{
+		pthread_join(philos[i].thread_id, NULL);
+		i++;
+	}
+	free(env->philos);
+	i = 0;
+	while (i < env->nb_philo)
+	{
+		pthread_mutex_destroy(&(env->forks[i]));
+		i++;
+	}
+	free(env->forks);
+	pthread_mutex_destroy(&(env->writing));
+}
+
+void	eat(t_philo *philo)
+{
+	t_env	*env;
+
+	env = philo->env;
+	pthread_mutex_lock(&(env->forks[philo->left]));
+	philo_print(env, philo->id, "has taken a fork");
+	pthread_mutex_lock(&(env->forks[philo->right]));
+	philo_print(env, philo->id, "has taken a fork");
+	pthread_mutex_lock(&(env->meal_check));
+	philo_print(env, philo->id, "is eating");
+	philo->last_meal = time_in_ms();
+	pthread_mutex_unlock(&(env->meal_check));
+	smart_sleep(env->time_to_eat, env);
+	(philo->nb_of_eat)++;
+	pthread_mutex_unlock(&(env->forks[philo->left]));
+	pthread_mutex_unlock(&(env->forks[philo->right]));
+}
+
+void	*start_routine(void *void_philosopher)
 {
 	int		i;
 	t_philo	*philo;
-	t_info	*info;
+	t_env	*env;
 
 	i = 0;
 	philo = (t_philo *)void_philosopher;
-	info = philo->info;
+	env = philo->env;
 	if (philo->id % 2)
 		usleep(15000);
-	while (!(info->dieded))
+	while (!(env->dieded))
 	{
 		eat(philo);
-		if (info->all_ate)
+		if (env->all_ate)
 			break ;
-		action_print(info, philo->id, "is sleeping");
-		smart_sleep(info->time_to_sleep, info);
-		action_print(info, philo->id, "is thinking");
+		philo_print(env, philo->id, "is sleeping");
+		smart_sleep(env->time_to_sleep, env);
+		philo_print(env, philo->id, "is thinking");
 		i++;
 	}
 	return (NULL);
 }
 
-void	exit_prog(t_info *info, t_philo *philos)
-{
-	int	i;
-
-	i = 0;
-	while (i < info->nb_philo)
-	{
-		pthread_join(philos[i].thread_id, NULL);
-		i++;
-	}
-	i = 0;
-	while (i < info->nb_philo)
-	{
-		pthread_mutex_destroy(&(info->forks[i]));
-		i++;
-	}
-	pthread_mutex_destroy(&(info->writing));
-}
-
-void	if_is_dead(t_info *info, t_philo *philo)
-{
-	int	i;
-
-	while (!(info->all_ate))
-	{
-		i = -1;
-		while (++i < info->nb_philo && !(info->dieded))
-		{
-			pthread_mutex_lock(&(info->meal_check));
-			if (time_diff(philo[i].last_meal, time_in_ms()) > info->time_to_die)
-			{
-				action_print(info, i, "died");
-				info->dieded = 1;
-			}
-			pthread_mutex_unlock(&(info->meal_check));
-			usleep(100);
-		}
-		if (info->dieded)
-			break ;
-		i = 0;
-		while (info->nb_eat != -1 && i < info->nb_philo && \
-				philo[i].nb_of_eat >= info->nb_eat)
-			i++;
-		if (i == info->nb_philo)
-			info->all_ate = 1;
-	}
-}
-
-int	prog(t_info *info)
+int	prog(t_env *env)
 {
 	int		i;
 	t_philo	*phi;
 
 	i = 0;
-	phi = info->philos;
-	info->launch_time = time_in_ms();
-	while (i < info->nb_philo)
+	phi = env->philos;
+	env->launch_time = time_in_ms();
+	while (i < env->nb_philo)
 	{
-		if (pthread_create(&(phi[i].thread_id), NULL, p_thread, &(phi[i])))
+		if (pthread_create(&(phi[i].thread_id), NULL, start_routine, &(phi[i])))
 			return (1);
 		phi[i].last_meal = time_in_ms();
 		i++;
 	}
-	if_is_dead(info, info->philos);
-	exit_prog(info, phi);
+	if_is_dead(env, env->philos);
+	exit_prog(env, phi);
 	return (0);
 }

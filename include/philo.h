@@ -28,10 +28,10 @@ typedef struct s_philo
 	int					right;
 	long long			last_meal;
 	pthread_t			thread_id;
-	struct s_info		*info;
+	struct s_env		*env;
 }				t_philo;
 
-typedef struct s_info
+typedef struct s_env
 {
 	int					nb_philo;
 	int					time_to_die;
@@ -42,39 +42,20 @@ typedef struct s_info
 	int					all_ate;
 	long long			launch_time;
 	pthread_mutex_t		meal_check;
-	pthread_mutex_t		forks[250];
 	pthread_mutex_t		writing;
-	t_philo				philos[250];
-}				t_info;
-
-/*
-** ----- error_manager.c -----
-*/
+	pthread_mutex_t		*forks;
+	t_philo				*philos;
+}				t_env;
 
 int						error(char *str);
-int						error_manager(int error);
-
-/*
-** ----- init.c -----
-*/
-
-int						init_all(t_info *info, char **av);
-
-/*
-** ----- utils.c -----
-*/
-
-int						ft_atoi(const char *str);
-void					action_print(t_info *info, int id, char *string);
+int						ft_malloc(void *dst, size_t size);
+int						init(t_env *env, char **av);
+void					philo_print(t_env *env, int id, char *str);
+void					smart_sleep(long long time, t_env *env);
+int						prog(t_env *env);
+void					exit_prog(t_env *env, t_philo *philos);
 long long				time_in_ms(void);
 long long				time_diff(long long past, long long pres);
-void					smart_sleep(long long time, t_info *info);
-
-/*
-** ----- launcher.c -----
-*/
-
-int						prog(t_info *info);
-void					exit_prog(t_info *info, t_philo *philos);
+int						ft_atoi(const char *str);
 
 #endif
